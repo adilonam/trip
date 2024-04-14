@@ -2,7 +2,7 @@
 'use client'
 
 import React, { useEffect, useState, FormEvent } from 'react';
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { useSession } from 'next-auth/react';
 
 interface Driver {
@@ -15,7 +15,7 @@ interface Driver {
 }
 
 export default function Drivers() {
-  const { data: session } = useSession();
+  const { data: session , status } = useSession();
 
 
 
@@ -33,20 +33,23 @@ export default function Drivers() {
     cin: '',
   });
 
-  const apiUrl = 'http://localhost:8080/api/v1/drivers'
+  const apiUrl =   `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/drivers`
+
+  const axiosRequestConfig : AxiosRequestConfig = {  headers: {
+    'Authorization': `Bearer ${session?.accessToken}`
+  }}
 
   useEffect(() => {
     
+    
     const fetchDrivers = async () => {
-      if(!session || !session.accessToken) return
-
+  
+     
       try {
-        const response = await axios.get<Driver[]>(apiUrl, {
-          headers: {
-            'Authorization': `Bearer ${session.accessToken}`
-          }
-        });
+        const response = await axios.get<Driver[]>(apiUrl,axiosRequestConfig);
         setDrivers(response.data);
+        setError(null)
+        setIsLoading(false)
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -70,9 +73,7 @@ export default function Drivers() {
 const handleCreateDriver = async (event: FormEvent) => {
   event.preventDefault();
   try {
-    const response = await axios.post<Driver>(apiUrl, newDriver, {  headers: {
-      'Authorization': `Bearer ${session?.accessToken}`
-    }});
+    const response = await axios.post<Driver>(apiUrl, newDriver,axiosRequestConfig);
     setDrivers(prevDrivers => [...prevDrivers, response.data]);//
     // Reset the form
     setNewDriver({

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState, FormEvent } from 'react';
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
+import { useSession } from 'next-auth/react';
 
 interface Vehicle {
   id: number;
@@ -37,11 +38,22 @@ export default function Vehicles() {
     vignetteExpirationDate: '',
   });
 
+  const { data: session , status } = useSession();
+
+  const apiUrl =   `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/vehicles`
+
+const axiosRequestConfig : AxiosRequestConfig = {  headers: {
+  'Authorization': `Bearer ${session?.accessToken}`
+}}
+
   useEffect(() => {
+  
     const fetchVehicles = async () => {
       try {
-        const response = await axios.get<Vehicle[]>('http://localhost:8080/api/v1/vehicles');
+        const response = await axios.get<Vehicle[]>(apiUrl, axiosRequestConfig);
         setVehicles(response.data);
+        setError(null)
+        setIsLoading(false)
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -54,7 +66,7 @@ export default function Vehicles() {
     };
 
     fetchVehicles();
-  }, []);
+  }, [session]);
 
   const handleCreateVehicle = async (event: FormEvent) => {
     event.preventDefault();
@@ -64,7 +76,7 @@ export default function Vehicles() {
     };
 
     try {
-      const response = await axios.post<Vehicle>('http://localhost:8080/api/v1/vehicles', vehicleToCreate);
+      const response = await axios.post<Vehicle>(apiUrl, vehicleToCreate, axiosRequestConfig);
       setVehicles(prevVehicles => [...prevVehicles, response.data]);
       setNewVehicle({
         registrationNumber: '',

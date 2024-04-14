@@ -8,6 +8,5 @@ declare module 'next-auth' {
   interface Session  extends DefaultSession{
     user?: User & DefaultSession['user']
     accessToken: String | null
-    refreshToken: String | null
   }
 }
