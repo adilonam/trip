@@ -18,14 +18,14 @@ export const authOptions: AuthOptions = {
   },
   callbacks: {
     jwt: async ({ token, user, account, profile, isNewUser }) => {
+      
       // Initial sign in
       if (account && user) {
 
-
         return {
-          accessToken: user.access_token,
-          refreshToken: user.refresh_token,
-          accessTokenExpires: getTokenExpiration(user.access_token as string),
+          accessToken: user.access,
+          refreshToken: user.refresh,
+          accessTokenExpires: getTokenExpiration(user.access as string),
           user
         };
       }
@@ -40,11 +40,8 @@ export const authOptions: AuthOptions = {
       return refreshAccessToken(token);
     },
 
-    session: async ({ session, token, user }) => {
-      // forward the accessToken to the session
+    session: async ({ session, token, user }) => {      
       session.accessToken = token.accessToken as string;
-      //  buiiiiiiild own user
-      session.user = {} as User
       return session;
     }
   },
@@ -54,8 +51,8 @@ export const authOptions: AuthOptions = {
       credentials: {},
       authorize: async (credentials: any) => {
         try {
-          const { data } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/authenticate`, {
-            email: credentials.email,
+          const { data } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/token/`, {
+            username: credentials.username,
             password: credentials.password
           });
           if (data) {
@@ -82,23 +79,23 @@ async function refreshAccessToken(token: JWT) {
 
 
   try {
-    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/refresh-token`; // The endpoint for refreshing the token
-    const response = await axios.post(url, { refresh_token: token.refreshToken },);
+    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/token/refresh/`; // The endpoint for refreshing the token
+    const response = await axios.post(url, { refresh: token.refreshToken },);
 
     const refreshedTokens = response.data;
 
     // Handle response and errors as appropriate.
     // Make sure to verify the shape of the response and extract the data correctly.
-    if (!refreshedTokens.access_token) {
+    if (!refreshedTokens.access) {
       throw new Error("No access_token returned from refresh token endpoint");
     }
 
 
     return {
       ...token,
-      accessToken: refreshedTokens.access_token,
-      accessTokenExpires: getTokenExpiration(refreshedTokens.access_token),
-      refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
+      accessToken: refreshedTokens.access,
+      accessTokenExpires: getTokenExpiration(refreshedTokens.access),
+      refreshToken: refreshedTokens.refresh ?? token.refreshToken, // Fall back to old refresh token
     };
 
   } catch (error) {
