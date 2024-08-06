@@ -9,8 +9,8 @@ import SessionProvider from "./SessionProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Trip Front",
-  description: "Trip Front",
+  title: "GRHMI Front",
+  description: "GRHMI Front",
 };
 
 export default async function RootLayout({
